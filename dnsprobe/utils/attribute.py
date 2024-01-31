@@ -3,7 +3,7 @@
 from urllib.parse import urljoin
 
 __name__ = "dnsprobe"
-__version__ = "0.1.alpha.2"
+__version__ = "0.1.alpha.3"
 __description__ = "Domain Name System Probe."
 __url_home__ = "https://github.com/DNSet/DNSProber"
 __url_code__ = __url_home__

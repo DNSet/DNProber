@@ -11,4 +11,4 @@ from .attribute import __url_code__
 from .attribute import __url_docs__
 from .attribute import __url_home__
 from .attribute import __version__
-from .prober import dns_probe
+from .prober import dnsprobe
