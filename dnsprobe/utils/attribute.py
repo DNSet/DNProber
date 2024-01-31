@@ -1,5 +1,6 @@
 # coding:utf-8
 
+import os
 from urllib.parse import urljoin
 
 __name__ = "dnsprobe"
@@ -17,3 +18,7 @@ __author_email__ = "zoumingzhe@outlook.com"
 # deamon
 __deamon_name__ = "dnsprobed"
 __deamon_description__ = "Domain Name System Probe Deamon."
+
+# config
+DEFAULT_CONFIG_FILE = os.path.join("/", "etc", "dnsprobe.conf")
+DEFAULT_SERVERS_DIR = os.path.join("/", "etc", "dnsprobe.nameservers")
