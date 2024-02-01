@@ -14,4 +14,6 @@ from .attribute import __version__
 from .config import USER_CONFIG_FILE
 from .config import USER_SERVERS_DIR
 from .config import dnsprobe_config
+from .nameservers import dnsprobe_nameservers
+from .nameservers import update_nameservers
 from .prober import dnsprobe

@@ -1,6 +1,5 @@
 # coding:utf-8
 
-from typing import List
 from typing import Optional
 from typing import Sequence
 
@@ -14,10 +13,9 @@ from ..utils import __description__
 from ..utils import __name__
 from ..utils import __url_home__
 from ..utils import __version__
+from ..utils import dnsprobe_config
 from .config import add_cmd_config
-
-subs: List[add_command] = list()
-subs.append(add_cmd_config)
+from .nameservers import add_cmd_update_nameservers
 
 
 @add_command(__name__)
@@ -27,8 +25,14 @@ def add_cmd(_arg: argp):
                       help=f"default config file is {USER_CONFIG_FILE}")
 
 
-@run_command(add_cmd, *subs)
+@run_command(add_cmd, add_cmd_config, add_cmd_update_nameservers)
 def run_cmd(cmds: commands) -> int:
+    config_file = cmds.args.config_file[0]
+    assert isinstance(config_file, str), \
+        f"unexpected type: {type(config_file)}"
+    config = dnsprobe_config.from_file(file=config_file)
+    config.dump(file=config_file)
+    cmds.args.config = config
     return 0
 
 
