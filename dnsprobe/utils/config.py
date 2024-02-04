@@ -5,8 +5,21 @@ from configparser import ConfigParser
 from enum import Enum
 import os
 
-from .attribute import DEFAULT_CONFIG_FILE
-from .attribute import DEFAULT_SERVERS_DIR
+from appdirs import user_config_dir
+from appdirs import user_data_dir
+
+from .attribute import __name__
+
+# from appdirs import site_config_dir
+# from appdirs import site_data_dir
+
+# GLOBAL_CONFIG_DIR = site_config_dir(appname=__name__)
+# GLOBAL_CONFIG_FILE = os.path.join(GLOBAL_CONFIG_DIR, "dnsprobe.conf")
+# GLOBAL_SERVERS_DIR = site_data_dir(appname=f"{__name__}.nameservers")
+
+USER_CONFIG_DIR = user_config_dir(appname=__name__)
+USER_CONFIG_FILE = os.path.join(USER_CONFIG_DIR, "dnsprobe.conf")
+USER_SERVERS_DIR = user_data_dir(appname=f"{__name__}.nameservers")
 
 DEFAULT_ITEM = namedtuple("dnsprobe_default_config_item",
                           ("section", "option", "default"))
@@ -15,7 +28,7 @@ DEFAULT_ITEM = namedtuple("dnsprobe_default_config_item",
 class dnsprobe_config():
 
     class defaults(Enum):
-        SERVERS = DEFAULT_ITEM("main", "nameservers_dir", DEFAULT_SERVERS_DIR)
+        SERVERS = DEFAULT_ITEM("main", "nameservers_dir", USER_SERVERS_DIR)
 
     def __init__(self, parser: ConfigParser):
         assert isinstance(parser, ConfigParser), \
@@ -35,13 +48,13 @@ class dnsprobe_config():
                     self.__parser.add_section(section)
                 self.__parser.set(section, option, item.default)
 
-    def dump(self, file: str = DEFAULT_CONFIG_FILE):
+    def dump(self, file: str = USER_CONFIG_FILE):
         os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as hdl:
             self.__parser.write(hdl)
 
     @classmethod
-    def from_file(cls, file: str = DEFAULT_CONFIG_FILE) -> "dnsprobe_config":
+    def from_file(cls, file: str = USER_CONFIG_FILE) -> "dnsprobe_config":
         assert not os.path.exists(file) or os.path.isfile(file), \
             f"'{file}' is not a regular file."
         parser: ConfigParser = ConfigParser()

@@ -9,6 +9,7 @@ from xarg import argp
 from xarg import commands
 from xarg import run_command
 
+from ..utils import USER_CONFIG_FILE
 from ..utils import __description__
 from ..utils import __name__
 from ..utils import __url_home__
@@ -21,7 +22,9 @@ subs.append(add_cmd_config)
 
 @add_command(__name__)
 def add_cmd(_arg: argp):
-    pass
+    _arg.add_argument("-c", "--config-file", nargs=1, type=str,
+                      metavar="FILE", default=[USER_CONFIG_FILE],
+                      help=f"default config file is {USER_CONFIG_FILE}")
 
 
 @run_command(add_cmd, *subs)

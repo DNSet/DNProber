@@ -5,7 +5,6 @@ from xarg import argp
 from xarg import commands
 from xarg import run_command
 
-from ..utils import DEFAULT_CONFIG_FILE
 from ..utils import dnsprobe_config
 
 
@@ -16,7 +15,7 @@ def add_cmd_config(_arg: argp):
 
 @run_command(add_cmd_config)
 def run_cmd_config(cmds: commands) -> int:
-    config_file = DEFAULT_CONFIG_FILE
+    config_file = cmds.args.config_file[0]
     config = dnsprobe_config.from_file(file=config_file)
     config.dump(file=config_file)
     return 0
