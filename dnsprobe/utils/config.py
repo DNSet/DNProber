@@ -41,8 +41,8 @@ NAMESERVER_DATABASE_ITEM = namedtuple("dnsprobe_nameserver_database_item",
 class dnsprobe_config():
 
     class defaults(Enum):
-        SERVERS = DEFAULT_CONFIG_ITEM("main", "nameservers_dir",
-                                      USER_SERVERS_DIR)
+        NAMESERVERS_DIR = DEFAULT_CONFIG_ITEM("main", "nameservers_dir",
+                                              USER_SERVERS_DIR)
 
     class nameserver_section():
         PREFIX = "nameserverdb."
@@ -116,7 +116,7 @@ class dnsprobe_config():
 
     @property
     def nameservers_dir(self) -> str:
-        return self.__get_item(self.defaults.SERVERS.value)
+        return self.__get_item(self.defaults.NAMESERVERS_DIR.value)
 
     @property
     def all_nameserver_databases(self) -> Set[str]:
