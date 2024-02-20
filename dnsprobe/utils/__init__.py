@@ -12,6 +12,7 @@ from .attribute import __url_docs__
 from .attribute import __url_home__
 from .attribute import __version__
 from .config import USER_CONFIG_FILE
+from .config import USER_DEAMON_DIR
 from .config import USER_SERVERS_DIR
 from .config import dnsprobe_config
 from .nameservers import dnsprobe_nameservers

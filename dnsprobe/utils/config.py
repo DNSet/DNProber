@@ -28,6 +28,10 @@ USER_CONFIG_FILE = os.path.join(USER_CONFIG_DIR, "dnsprobe.conf")
 assert isinstance(USER_CONFIG_FILE, str), \
     f"unexpected type: {type(USER_CONFIG_FILE)}"
 
+USER_DEAMON_DIR = user_data_dir(appname=f"{__name__}.d")
+assert isinstance(USER_DEAMON_DIR, str), \
+    f"unexpected type: {type(USER_DEAMON_DIR)}"
+
 USER_SERVERS_DIR = user_data_dir(appname=f"{__name__}.nameservers")
 assert isinstance(USER_SERVERS_DIR, str), \
     f"unexpected type: {type(USER_SERVERS_DIR)}"
@@ -41,6 +45,7 @@ NAMESERVER_DATABASE_ITEM = namedtuple("dnsprobe_nameserver_database_item",
 class dnsprobe_config():
 
     class defaults(Enum):
+        DEAMON_DIR = DEFAULT_CONFIG_ITEM("main", "deamon_dir", USER_DEAMON_DIR)
         NAMESERVERS_DIR = DEFAULT_CONFIG_ITEM("main", "nameservers_dir",
                                               USER_SERVERS_DIR)
 
@@ -113,6 +118,10 @@ class dnsprobe_config():
         os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as hdl:
             self.__parser.write(hdl)
+
+    @property
+    def deamon_dir(self) -> str:
+        return self.__get_item(self.defaults.DEAMON_DIR.value)
 
     @property
     def nameservers_dir(self) -> str:
