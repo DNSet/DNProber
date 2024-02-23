@@ -64,6 +64,11 @@ class dnsprobe_nameservers():
         def reliability(self) -> float:
             return self.__reliability
 
+        @reliability.setter
+        def reliability(self, value: float):
+            self.__reliability = min(max(0.0, value), 1.0)
+            self.__checked_at = datetime.now(timezone.utc)
+
         @property
         def checked_at(self) -> datetime:
             return self.__checked_at
