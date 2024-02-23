@@ -1,6 +1,8 @@
 # coding:utf-8
 
 import csv
+from datetime import datetime
+from datetime import timezone
 from enum import Enum
 import os
 import shutil
@@ -14,6 +16,7 @@ from urllib import request
 class dnsprobe_nameservers():
 
     class item():
+        TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
         class fields(Enum):
             IP_ADDRESS = "ip_address"
@@ -38,10 +41,16 @@ class dnsprobe_nameservers():
             def __get(key: str) -> str:
                 return self.__values[key].strip()
 
+            def __get_checked_at() -> datetime:
+                ts: str = __get(self.fields.CHECKED_AT.value)
+                dt: datetime = datetime.strptime(ts, self.TIME_FORMAT)
+                return dt.replace(tzinfo=timezone.utc)
+
             self.__ip_address: str = __get(self.fields.IP_ADDRESS.value)
             self.__country_code: str = __get(self.fields.COUNTRY_CODE.value)
             __reliability: float = float(__get(self.fields.RELIABILITY.value))
             self.__reliability: float = __reliability
+            self.__checked_at: datetime = __get_checked_at()
 
         @property
         def ip_address(self) -> str:
@@ -54,6 +63,10 @@ class dnsprobe_nameservers():
         @property
         def reliability(self) -> float:
             return self.__reliability
+
+        @property
+        def checked_at(self) -> datetime:
+            return self.__checked_at
 
         @property
         def name(self) -> Optional[str]:
