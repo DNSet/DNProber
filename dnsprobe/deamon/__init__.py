@@ -285,8 +285,9 @@ class dnsprobe_deamon():
 
         while self.count > 0:
             try:
-                handle(self.__taskq.get())
+                handle(self.__taskq.get(block=False, timeout=1.0))
             except Empty:
+                time.sleep(15.0)
                 continue
 
     def stat(self) -> None:
@@ -308,12 +309,11 @@ class dnsprobe_deamon():
 
         while self.count > 0:
             try:
-                requeue(self.__statq.get(block=False, timeout=15.0))
-                if len(objects) < 10000:
-                    continue
+                requeue(self.__statq.get(block=False, timeout=1.0))
             except Empty:
-                pass
-            flush()
+                time.sleep(3.0)
+            if len(objects) > 10000:
+                flush()
 
     def run(self, threads: int = 8) -> None:
         for i in range(threads):
