@@ -67,6 +67,10 @@ class dnsprobe_deamon():
             def retry(self) -> int:
                 return self.__retry
 
+            @retry.setter
+            def retry(self, value: int):
+                self.__retry = max(0, value)
+
             @property
             def fault(self) -> int:
                 return self.__fault
@@ -130,9 +134,8 @@ class dnsprobe_deamon():
                 return self.field_average_cost / 1000
 
             @property
-            def delta_slot(self) -> int:
-                value: int = 2**self.field_retry
-                return randint(value - 1, value * 2)
+            def retry(self) -> int:
+                return self.field_retry
 
             @classmethod
             def dump(cls, checked_at: int, reliability: int,
@@ -179,8 +182,11 @@ class dnsprobe_deamon():
 
         @property
         def delay(self) -> int:
-            min_delay: int = 2**self.__stat.retry - 1
-            return randint(min_delay, min_delay * 2)
+            power: int = self.__stat.retry
+            reliability: float = self.reliability
+            if power > 0:
+                return 2**power if reliability < 0.5 else randint(0, power * 2)
+            return randint(0, int(9 * reliability))
 
         def access(self) -> float:
             timeout: float = self.__stat.block_time * 2
@@ -189,13 +195,15 @@ class dnsprobe_deamon():
             self.__stat.count(cost)
             return cost
 
-        def update(self, name: str, checked_at: datetime, reliability: float):
+        def update(self, name: str, checked_at: datetime,
+                   reliability: float, retry: int) -> None:
             assert isinstance(name, str), f"unexpected type: {type(name)}"
             assert isinstance(checked_at, datetime), \
                 f"unexpected type: {type(checked_at)}"
             assert isinstance(reliability, float), \
                 f"unexpected type: {type(reliability)}"
             self.__stat.reliability = min(self.reliability, reliability)
+            self.__stat.retry = max(self.__stat.retry, retry)
             self.__checked_at = checked_at
             self.__nset.add(name)
 
@@ -238,21 +246,30 @@ class dnsprobe_deamon():
         self.__slots.slide()
 
     def __update_address(self, ns: dnsprobe_nameservers, addr: str) -> None:
-        slot: int = 0
         name: str = ns.name
         checked_at: datetime = ns[addr].checked_at
         reliability: float = ns[addr].reliability
+        retry: int = 0
+
         if addr in self.__ctrie:
             stor = self.item.stor.load(self.__ctrie[addr])
-            slot = stor.delta_slot
             checked_at = stor.checked_at
             reliability = stor.reliability
+            retry = stor.retry
+
+        def get_delta_slot() -> int:
+            max: int = self.__slots.layer
+            mid: int = int(max / 8)
+            if reliability < 0.5 and retry > 0:
+                return randint(mid, max)
+            return randint(0, int(mid * reliability))
+
         if addr not in self.__items:
             item: dnsprobe_deamon.item = self.item(addr)
-            self.__slots.delta_push(item, delta=slot)
+            self.__slots.delta_push(item, delta=get_delta_slot())
             self.__items[addr] = item
             self.__count += 1
-        self.__items[addr].update(name, checked_at, reliability)
+        self.__items[addr].update(name, checked_at, reliability, retry)
 
     def update_nameservers(self, ns: dnsprobe_nameservers) -> None:
         assert ns.name not in self.__names, f"'{ns.name}' already exists"
@@ -278,8 +295,7 @@ class dnsprobe_deamon():
         def requeue(stat_item: dnsprobe_deamon.STAT_ITEM):
             entry: dnsprobe_deamon.item = stat_item.entry
             milli: float = stat_item.speed * 1000
-            delay: int = randint(3, 6) if milli > 0 else entry.delay
-            delta: int = min(max(1, delay), self.__slots.layer - 1)
+            delta: int = min(max(1, entry.delay), self.__slots.layer - 1)
             self.__ctrie[entry.address] = self.__items[entry.address].dump()
             self.__slots.delta_push(entry, delta=delta)  # Repush to multislot
             speed = f"{milli:.2f}ms" if milli > 0 else f"timeout({int(milli)})"
