@@ -305,14 +305,20 @@ class dnsprobe_deamon():
             objects.add(entry)
 
         def flush():
-            pass
+            for obj in objects:
+                for db in obj.databases:
+                    self.__names[db][obj.address].reliability = obj.reliability
+            for ns in self.__names.values():
+                ns.dump_temp()
+            objects.clear()
 
         while self.count > 0:
             try:
                 requeue(self.__statq.get(block=False, timeout=1.0))
             except Empty:
-                time.sleep(3.0)
-            if len(objects) > 10000:
+                if len(objects) < self.count / 4:
+                    time.sleep(3.0)
+                    continue
                 flush()
 
     def run(self, threads: int = 8) -> None:

@@ -31,7 +31,9 @@ class dnsprobe_nameservers():
             RELIABILITY = "reliability"
             CHECKED_AT = "checked_at"
             CREATED_AT = "created_at"
-        FIELDS: List[str] = [field.value for field in fields]
+        FULLFIELDS: List[str] = [field.value for field in fields]
+        TEMPFIELDS: List[str] = [field.value for field in [
+            fields.IP_ADDRESS, fields.RELIABILITY, fields.CHECKED_AT]]
 
         def __init__(self, **kwargs: str):
             assert isinstance(kwargs, dict), f"unexpected type: {type(kwargs)}"
@@ -74,11 +76,19 @@ class dnsprobe_nameservers():
             return self.__checked_at
 
         @property
+        def ftime(self) -> str:
+            return self.checked_at.strftime(self.TIME_FORMAT)
+
+        @property
         def name(self) -> Optional[str]:
             return self.__values.get(self.fields.NAME.value, None)
 
-        def dump(self) -> Dict[str, str]:
-            return self.__values
+        def dump(self, fields: List[str] = FULLFIELDS) -> Dict[str, str]:
+            def __set(key: str, value: str):
+                self.__values[key] = value.strip()
+            __set(self.fields.CHECKED_AT.value, self.ftime)
+            __set(self.fields.RELIABILITY.value, str(self.reliability))
+            return {k: v for k, v in self.__values.items() if k in fields}
 
     def __init__(self, dir: str, name: str, reliability: float = 0.0):
         assert isinstance(dir, str), f"unexpected type: {type(dir)}"
@@ -111,7 +121,7 @@ class dnsprobe_nameservers():
                 for line in csv.DictReader(rhdl):
                     self.update(self.item(**line))
 
-    def __safe_dump(self, path: str) -> None:
+    def __safe_dump(self, path: str, fields: List[str], sort: bool) -> None:
         dir: str = os.path.dirname(path)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -120,15 +130,28 @@ class dnsprobe_nameservers():
         if os.path.isfile(path):
             assert shutil.move(src=path, dst=backup) == backup
         with open(path, "w") as whdl:
-            writer = csv.DictWriter(whdl, fieldnames=self.item.FIELDS)
+            writer = csv.DictWriter(whdl, fieldnames=fields)
             writer.writeheader()
-            for item in self.__data.values():
-                writer.writerow(item.dump())
+            if sort:
+                for item in sorted(self.__data.values(),
+                                   key=lambda x: x.ip_address):
+                    writer.writerow(item.dump(fields))
+            else:
+                for item in self.__data.values():
+                    writer.writerow(item.dump(fields))
         if os.path.isfile(backup):
             os.remove(backup)
 
-    def dump(self, path: Optional[str] = None) -> None:
-        self.__safe_dump(path if isinstance(path, str) else self.__path)
+    def dump(self, path: Optional[str] = None,
+             fields: List[str] = item.FULLFIELDS,
+             sort: bool = True) -> None:
+        self.__safe_dump(path=path if isinstance(path, str) else self.path,
+                         fields=fields, sort=sort)
+
+    def dump_temp(self) -> None:
+        self.dump(path=f"{self.path}.dtmp",
+                  fields=self.item.TEMPFIELDS,
+                  sort=False)
 
     def update(self, item: item) -> None:
         assert isinstance(item, dnsprobe_nameservers.item), \
@@ -143,6 +166,10 @@ class dnsprobe_nameservers():
     @property
     def name(self) -> str:
         return self.__name
+
+    @property
+    def path(self) -> str:
+        return self.__path
 
     @property
     def reliability(self) -> float:
