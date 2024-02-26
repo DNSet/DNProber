@@ -45,6 +45,7 @@ NAMESERVER_DATABASE_ITEM = namedtuple("dnsprobe_nameserver_database_item",
 class dnsprobe_config():
 
     class defaults(Enum):
+        THREADS = DEFAULT_CONFIG_ITEM("main", "threads", str(16))
         DEAMON_DIR = DEFAULT_CONFIG_ITEM("main", "deamon_dir", USER_DEAMON_DIR)
         NAMESERVERS_DIR = DEFAULT_CONFIG_ITEM("main", "nameservers_dir",
                                               USER_SERVERS_DIR)
@@ -118,6 +119,10 @@ class dnsprobe_config():
         os.makedirs(os.path.dirname(file), exist_ok=True)
         with open(file, "w") as hdl:
             self.__parser.write(hdl)
+
+    @property
+    def threads(self) -> int:
+        return int(self.__get_item(self.defaults.THREADS.value))
 
     @property
     def deamon_dir(self) -> str:

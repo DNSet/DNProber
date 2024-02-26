@@ -335,7 +335,7 @@ def run_cmd(cmds: commands) -> int:
         db = cmds.args.config.get_nameserver_database(database)
         ns = dnsprobe_nameservers(nameservers_dir, db.database_name)
         dnsprobed.update_nameservers(ns)
-    dnsprobed.run()
+    dnsprobed.run(threads=cmds.args.config.threads)
     return 0
 
 
