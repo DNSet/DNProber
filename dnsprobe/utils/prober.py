@@ -77,4 +77,4 @@ class dnsprobe():
         except (NoAnswer, NoNameservers):
             return ok()
         except LifetimeTimeout:
-            return -timeout
+            return -_timeout
