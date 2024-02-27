@@ -12,6 +12,8 @@ from typing import Optional
 from typing import Set
 from urllib import request
 
+from xarg import safile
+
 
 class dnsprobe_nameservers():
 
@@ -152,6 +154,18 @@ class dnsprobe_nameservers():
         self.dump(path=f"{self.path}.dtmp",
                   fields=self.item.TEMPFIELDS,
                   sort=False)
+
+    def load_temp(self) -> None:
+        path: str = f"{self.path}.dtmp"
+        assert safile.restore(path), f"restore {path} failed"
+        with open(path) as thdl:
+            for line in csv.DictReader(thdl):
+                addr: str = line[self.item.fields.IP_ADDRESS.value].strip()
+                if addr not in self.__data:
+                    continue
+                item: dnsprobe_nameservers.item = self.__data[addr]
+                item.reliability = float(
+                    line[self.item.fields.RELIABILITY.value].strip())
 
     def update(self, item: item) -> None:
         assert isinstance(item, dnsprobe_nameservers.item), \
