@@ -1,5 +1,6 @@
 # coding:utf-8
 
+from xarg import Namespace
 from xarg import add_command
 from xarg import argp
 from xarg import commands
@@ -13,6 +14,11 @@ def add_opt_config_file(_arg: argp):
     _arg.add_argument("-c", "--config-file", nargs=1, type=str,
                       metavar="FILE", default=[USER_CONFIG_FILE],
                       help=f"default config file is {USER_CONFIG_FILE}")
+
+
+def pre_opt_config_file(_arg: argp) -> dnsprobe_config:
+    args: Namespace = _arg.preparse_from_sys_argv()
+    return dnsprobe_config.from_file(file=args.config_file[0])
 
 
 def get_config(cmds: commands) -> dnsprobe_config:

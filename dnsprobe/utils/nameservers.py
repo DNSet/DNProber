@@ -198,7 +198,7 @@ class dnsprobe_nameservers():
         return request.urlretrieve(url, filename)[0]
 
 
-def update_databases(dir: str, name: str, url: str) -> None:
+def import_databases(dir: str, name: str, url: str) -> None:
     nameservers = dnsprobe_nameservers(dir, name)
     with open(dnsprobe_nameservers.download(url)) as rhdl:
         for line in csv.DictReader(rhdl):

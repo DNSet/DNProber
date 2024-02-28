@@ -16,5 +16,5 @@ from .config import USER_DEAMON_DIR
 from .config import USER_SERVERS_DIR
 from .config import dnsprobe_config
 from .nameservers import dnsprobe_nameservers
-from .nameservers import update_databases
+from .nameservers import import_databases
 from .prober import dnsprobe
