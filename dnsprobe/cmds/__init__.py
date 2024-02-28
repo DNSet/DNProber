@@ -15,7 +15,7 @@ from ..utils import __version__
 from .config import add_cmd_config
 from .config import add_opt_config_file
 from .config import get_config
-from .nameservers import add_cmd_update_nameservers
+from .nameservers import add_cmd_update_databases
 
 
 @add_command(__name__)
@@ -23,7 +23,7 @@ def add_cmd(_arg: argp):
     add_opt_config_file(_arg)
 
 
-@run_command(add_cmd, add_cmd_config, add_cmd_update_nameservers)
+@run_command(add_cmd, add_cmd_config, add_cmd_update_databases)
 def run_cmd(cmds: commands) -> int:
     cmds.args.config = get_config(cmds)
     return 0
