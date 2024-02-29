@@ -184,9 +184,9 @@ class dnsprobe_deamon():
         def delay(self) -> int:
             power: int = self.__stat.retry
             reliability: float = self.reliability
-            if power > 0:
-                return 2**power if reliability < 0.5 else randint(0, power * 2)
-            return randint(0, int(9 * reliability))
+            if power > 0 and reliability < 0.5:
+                return 2**min(10, power)
+            return int(1 / max(1.0 - reliability, 0.001))
 
         def access(self) -> float:
             timeout: float = self.__stat.block_time * 2
