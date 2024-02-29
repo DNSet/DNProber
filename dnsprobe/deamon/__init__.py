@@ -280,6 +280,10 @@ class dnsprobe_deamon():
         for addr in self.__names[ns.name]:
             self.__update_address(ns, addr)
 
+    def clear_nameservers(self) -> None:
+        for addr in [i for i in self.__ctrie if i not in self.__items]:
+            del self.__ctrie[addr]
+
     def task(self) -> None:
         def handle(task_item: dnsprobe_deamon.TASK_ITEM):
             entry: dnsprobe_deamon.item = task_item.entry
@@ -360,6 +364,7 @@ def run_cmd(cmds: commands) -> int:
         db = cmds.args.config.get_nameserver_database(database)
         ns = dnsprobe_nameservers(nameservers_dir, db.database_name)
         dnsprobed.update_nameservers(ns)
+        dnsprobed.clear_nameservers()
     dnsprobed.run(threads=cmds.args.config.threads)
     return 0
 
