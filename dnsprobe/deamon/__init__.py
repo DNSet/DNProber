@@ -48,6 +48,10 @@ def checkip(key: str, len: int) -> bool:
 testip46 = testakey(allowed_char=testakey.ip46, inspection=checkip)
 
 
+def delta_slot_no(reliability: float) -> int:
+    return int(1 / max(1.0 - reliability, 0.001))
+
+
 class dnsprobe_deamon():
     class item():
         class stat():
@@ -181,12 +185,14 @@ class dnsprobe_deamon():
             return round(self.__stat.reliability, 3)
 
         @property
-        def delay(self) -> int:
-            power: int = self.__stat.retry
+        def delta(self) -> int:
+            threshold: int = self.__stat.retry
             reliability: float = self.reliability
-            if power > 0 and reliability < 0.5:
-                return 2**min(10, power)
-            return int(1 / max(1.0 - reliability, 0.001))
+            if threshold > 0 and reliability < 0.5:
+                maxv: int = 2 ** min(10, threshold)
+                minv: int = min(threshold**2, maxv)
+                return randint(minv, maxv)
+            return delta_slot_no(reliability)
 
         def access(self) -> float:
             timeout: float = self.__stat.block_time * 2
@@ -258,11 +264,8 @@ class dnsprobe_deamon():
             retry = stor.retry
 
         def get_delta_slot() -> int:
-            max: int = self.__slots.layer
-            mid: int = int(max / 8)
-            if reliability < 0.5 and retry > 0:
-                return randint(mid, max)
-            return randint(0, int(mid * reliability))
+            threshold: int = int(self.__slots.layer / 8)
+            return randint(0, min(delta_slot_no(reliability), threshold))
 
         if addr not in self.__items:
             item: dnsprobe_deamon.item = self.item(addr)
@@ -296,7 +299,7 @@ class dnsprobe_deamon():
         def requeue(stat_item: dnsprobe_deamon.STAT_ITEM):
             entry: dnsprobe_deamon.item = stat_item.entry
             milli: float = stat_item.speed * 1000
-            delta: int = min(max(1, entry.delay), self.__slots.layer - 1)
+            delta: int = min(max(1, entry.delta), self.__slots.layer - 1)
             self.__ctrie[entry.address] = self.__items[entry.address].dump()
             self.__slots.delta_push(entry, delta=delta)  # Repush to multislot
             speed = f"{milli:.2f}ms" if milli > 0 else f"timeout({int(milli)})"
