@@ -344,9 +344,10 @@ class dnsprobe_deamon():
                 item_count += slot_count
                 slot_no: int = self.__slots.order
                 message: str = f"SLOT {slot_no}: {slot_count}/{item_count}"
+                average: float = max(3.0, min(slot_count, 1024) / threads)
+                time.sleep(min(dnsprobe.TEST_MAX_TO * average, 180.0))
                 commands().logger.info(message)
                 slot_count = 0
-                time.sleep(60)
                 self.__slide()
 
 
