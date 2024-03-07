@@ -1,5 +1,6 @@
 # coding:utf-8
 
+import os
 from typing import Set
 
 from xarg import add_command
@@ -31,6 +32,32 @@ def run_cmd_import_databases(cmds: commands) -> int:
     for database in cmds.args.nameserver_databases:
         db = config.get_nameserver_database(database)
         import_databases(config.nameservers_dir, db.database_name, db.url)
+    return 0
+
+
+@add_command("export-databases", help="Export public DNS databases")
+def add_cmd_export_databases(_arg: argp):
+    current_directory = os.path.abspath(".")
+    _arg.add_argument("-d", "--output", dest="output_directory", type=str,
+                      nargs=1, metavar="DIR", default=[current_directory],
+                      help=f"default output directory is {current_directory}")
+    add_opt_nameserver_databases(_arg)
+
+
+@run_command(add_cmd_export_databases)
+def run_cmd_export_databases(cmds: commands) -> int:
+    output: str = cmds.args.output_directory[0]
+    if not os.path.exists(output):
+        os.makedirs(output)
+    assert os.path.isdir(output), f"'{output}' is not an existing directory"
+    config: dnsprobe_config = cmds.args.config
+    for database in cmds.args.nameserver_databases:
+        db = config.get_nameserver_database(database)
+        path = os.path.join(output, db.database_name)
+        nameservers = dnsprobe_nameservers(config.nameservers_dir,
+                                           db.database_name)
+        nameservers.load_temp()
+        nameservers.dump(path)
     return 0
 
 
