@@ -50,9 +50,10 @@ class dnsprobe_nameservers():
                 dt: datetime = datetime.strptime(ts, self.TIME_FORMAT)
                 return dt.replace(tzinfo=timezone.utc)
 
-            self.__ip_address: str = __get(self.fields.IP_ADDRESS.value)
-            self.__country_code: str = __get(self.fields.COUNTRY_CODE.value)
+            __country_code: str = __get(self.fields.COUNTRY_CODE.value).upper()
             __reliability: float = float(__get(self.fields.RELIABILITY.value))
+            self.__ip_address: str = __get(self.fields.IP_ADDRESS.value)
+            self.__country_code: str = __country_code
             self.__reliability: float = __reliability
             self.__checked_at: datetime = __get_checked_at()
 
