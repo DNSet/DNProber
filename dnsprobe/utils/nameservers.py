@@ -42,20 +42,32 @@ class dnsprobe_nameservers():
             self.__values: Dict[str, str] = dict()
             self.__values.update(**kwargs)
 
-            def __get(key: str) -> str:
-                return self.__values[key].strip()
+            def __get_ip_address() -> str:
+                return self.__get_value(self.fields.IP_ADDRESS.value)
+
+            def __get_reliability() -> float:
+                return float(self.__get_value(self.fields.RELIABILITY.value))
+
+            def __get_country_code() -> str:
+                return self.__get_value(self.fields.COUNTRY_CODE.value).upper()
 
             def __get_checked_at() -> datetime:
-                ts: str = __get(self.fields.CHECKED_AT.value)
+                ts: str = self.__get_value(self.fields.CHECKED_AT.value)
                 dt: datetime = datetime.strptime(ts, self.TIME_FORMAT)
                 return dt.replace(tzinfo=timezone.utc)
 
-            __country_code: str = __get(self.fields.COUNTRY_CODE.value).upper()
-            __reliability: float = float(__get(self.fields.RELIABILITY.value))
-            self.__ip_address: str = __get(self.fields.IP_ADDRESS.value)
-            self.__country_code: str = __country_code
-            self.__reliability: float = __reliability
+            self.__ip_address: str = __get_ip_address()
+            self.__reliability: float = __get_reliability()
+            self.__country_code: str = __get_country_code()
             self.__checked_at: datetime = __get_checked_at()
+
+        def __get_value(self, key: str) -> str:
+            value = self.__get_optional_value(key)
+            assert isinstance(value, str)
+            return value
+
+        def __get_optional_value(self, key: str) -> Optional[str]:
+            return self.__values[key].strip() if key in self.__values else None
 
         @property
         def ip_address(self) -> str:
@@ -64,6 +76,30 @@ class dnsprobe_nameservers():
         @property
         def country_code(self) -> str:
             return self.__country_code
+
+        @property
+        def city(self) -> str:
+            return self.__get_value(self.fields.CITY.value)
+
+        @property
+        def name(self) -> str:
+            return self.__get_value(self.fields.NAME.value)
+
+        @property
+        def as_number(self) -> int:
+            return int(self.__get_value(self.fields.AS_NUMBER.value))
+
+        @property
+        def as_org(self) -> str:
+            return self.__get_value(self.fields.AS_ORG.value)
+
+        @property
+        def version(self) -> str:
+            return self.__get_value(self.fields.VERSION.value)
+
+        @property
+        def dnssec(self) -> str:
+            return self.__get_value(self.fields.DNSSEC.value)
 
         @property
         def reliability(self) -> float:
@@ -81,10 +117,6 @@ class dnsprobe_nameservers():
         @property
         def ftime(self) -> str:
             return self.checked_at.strftime(self.TIME_FORMAT)
-
-        @property
-        def name(self) -> Optional[str]:
-            return self.__values.get(self.fields.NAME.value, None)
 
         def dump(self, fields: List[str] = FULLFIELDS) -> Dict[str, str]:
             def __set(key: str, value: str):
