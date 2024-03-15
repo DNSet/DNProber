@@ -284,6 +284,11 @@ class dnsprobe_deamon():
         for addr in [i for i in self.__ctrie if i not in self.__items]:
             del self.__ctrie[addr]
 
+    def clear_all(self) -> None:
+        '''Clean up all cached nameservers
+        '''
+        self.__ctrie.clear()
+
     def task(self) -> None:
         def handle(task_item: dnsprobe_deamon.TASK_ITEM):
             entry: dnsprobe_deamon.item = task_item.entry
@@ -317,6 +322,7 @@ class dnsprobe_deamon():
                     self.__names[db][obj.address].reliability = obj.reliability
             for ns in self.__names.values():
                 ns.dump_temp()
+            self.clear_all()  # Drop cache files for faster restart
             objects.clear()
 
         while self.count > 0:
